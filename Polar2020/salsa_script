@@ -63,4 +63,5 @@ index=${assembly}.fai
 /data2/work/local/SALSA/run_pipeline.py -a $assembly -l $index -b aligned.bed -e GATC,CTNAG,TTAA,GANTC -o Salsa_assembly |& tee salsa.log
 
 # Run juicer on SALSA's output assembly
+## You can skip this part, since this takes some time. It's needed to visualize the HiC output as a heatmap
 /data2/work/local/SALSA/convert.sh Salsa_assembly |& tee juicer.tmux.log
