@@ -1,0 +1,15 @@
+#!/usr/bin/bash
+
+# conda activate /data2/work/local/miniconda/envs/mitohifi_env
+
+mitofinder_path=/data2/work/local/mitofinder
+export PATH="$PATH:${mitofinder_path}"
+
+reads_dir=
+# hifiasm_fasta=
+
+python /data2/work/local/MitoHiFi/src/mitohifi.py \
+    -r ${reads_dir}/*.gz \
+    -f /data2/work/Zoarcids/Reference_seqs/Ldea_mtDNA_ncbi/LdeamtDNA_ncbi.fasta \
+    -g /data2/work/Zoarcids/Reference_seqs/Ldea_mtDNA_ncbi/LdeamtDNA_ncbi.gbk \
+    -t 60 | tee mitohifi.stdout.log

@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+set -ex
+
+# Make sure you've activated the conda environment
+# conda activate /data2/work/local/miniconda/envs/RepeatMask/
+#
+# Example run: "./Repeatmask_pipeline -g Dmaw12.fa -t 56"  
+# ######## masks the Dmaw12.fa file and uses 56 threads
+
+# ------ getopts starts
+
+
+while getopts ":g:t:" opt; do
+    case $opt in 
+        g)
+            echo "your assembly file is in ${OPTARG}" >&2
+            assembly=${OPTARG}
+            ;;
+        t)
+            echo "Running the pipeline on ${OPTARG} thread(s)" >&2
+            nthreads=${OPTARG}
+            ;;
+    esac
+done;
+
+# ------ end of getopts
+
+
+# part 1: Run repeatmodeler
+
+repeatmodeler=/data2/work/local/RepeatModeler/RepeatModeler-2.0.5
+
+# 1.1 : Build database
+${repeatmodeler}/BuildDatabase -name asm.db \
+    -engine ncbi $assembly \
+    |& tee RepeatModeler_BuildDB.tmux.log
+
+# 1.2 : run repeatmodeler
+
+${repeatmodeler}/RepeatModeler \
+    -database asm.db \
+    -engine ncbi \
+    -threads ${nthreads} \
+    -LTRStruct \
+    |& tee RepeatModeler.tmux.log
+
+
+
+# part 2 : Run repeatmasker
+repeatmasker=/data2/work/local/RepeatMasker/RepeatMasker/RepeatMasker
+repbase=/data2/work/Vertebrate_repeats/RepBase/standard_repeats.fa
+
+# combine the Modeled repeats and repbase files
+
+cat asm.db-families.fa ${repbase} > curated_repeats.fa
+
+# Mask repeats
+
+${repeatmasker} -a \
+    -lib curated_repeats.fa ${assembly} \
+    -poly \
+    -gff \
+    -pa ${nthreads} \
+    -xsmall \
+    -dir $PWD \
+    |& tee RepeatMasker.tmux.log
